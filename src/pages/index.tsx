@@ -2,7 +2,6 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import { TaskStatus } from "@prisma/client";
 import { RouterOutputs, api } from "@/utils/api";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Draggable,
@@ -10,10 +9,17 @@ import {
   DragDropContext,
   DropResult,
 } from "@hello-pangea/dnd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Figtree } from "@next/font/google";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
 type TaskWithIndex = Task & { index: number };
+
+const figTree = Figtree({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 interface KanbanCard {
   name: string;
   color: string;
@@ -33,7 +39,9 @@ export default function Home() {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-white">
+      <main
+        className={`flex min-h-screen flex-col items-center justify-center bg-white ${figTree.className}`}
+      >
         <AuthShowcase />
         {/* <Button>+ New Task</Button> */}
         <Kanban tasks={data ?? []} />
@@ -57,22 +65,30 @@ function TaskCard(props: TaskWithIndex) {
       index={props.index}
       key={props.index}
     >
-      {(provided): JSX.Element => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-        >
-          <Card className="mt-2 max-h-28 min-h-28 rounded-lg p-3 text-sm">
-            <div className="flex justify-between font-bold capitalize text-black">
+      {(provided, snapshot) => {
+        {
+          console.log(snapshot.isDragging, snapshot.draggingOver);
+        }
+        return (
+          <Card
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            style={{
+              ...provided.draggableProps.style,
+              transform: `${provided.draggableProps.style?.transform ?? ""} ${snapshot.isDragging ? "rotate(3deg)" : ""}`,
+            }}
+            className={`mt-2 max-h-28 min-h-28 rounded-lg p-3 text-sm`}
+          >
+            <div className="flex justify-between font-semibold capitalize text-black">
               {props.name}
             </div>
             <div className="mt-2 flex capitalize">
               {props.priority?.toLocaleLowerCase()}
             </div>
           </Card>
-        </div>
-      )}
+        );
+      }}
     </Draggable>
   );
 }
@@ -80,7 +96,7 @@ function TaskCard(props: TaskWithIndex) {
 function KanbarCard({ name, color, tasks = [] }: KanbanCard) {
   return (
     <div
-      className={`w-64 overflow-hidden rounded-lg bg-kanban-grey hover:bg-kanban-grey2 hover:shadow-md`}
+      className={`max-h-screen w-64 rounded-lg bg-kanban-grey hover:bg-kanban-grey2 hover:shadow-md`}
     >
       <div
         className={`${color} z-10 rounded-t-xl p-2 font-bold capitalize text-white`}
@@ -93,7 +109,7 @@ function KanbarCard({ name, color, tasks = [] }: KanbanCard) {
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="min-h-60 overflow-auto px-3 pb-4 pt-1"
+            className="max-h-screen min-h-60 overflow-auto px-3 pb-4 pt-1"
           >
             {tasks?.map((task, index) => {
               return <TaskCard key={task.id} index={index} {...task} />;
@@ -107,13 +123,24 @@ function KanbarCard({ name, color, tasks = [] }: KanbanCard) {
 }
 
 function Kanban({ tasks }: { tasks: Task[] }) {
-  const { mutate } = api.tasks.update.useMutation();
+  // const [taskData, setTaskData] = useState(tasks);
+  const mutate = api.tasks.update.useMutation();
+
+  // useEffect(() => {
+  //   setTaskData(tasks);
+  // }, [tasks]);
 
   const onDragEnd = (result: DropResult) => {
-    const { source, destination } = result;
+    const { source, destination, draggableId } = result;
     if (!destination) return;
-    mutate({
-      id: source.index,
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    )
+      return;
+
+    mutate.mutate({
+      id: parseInt(draggableId),
       status: destination.droppableId as TaskStatus,
     });
   };
