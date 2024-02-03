@@ -3,6 +3,8 @@ import Head from "next/head";
 import { TaskStatus } from "@prisma/client";
 import { RouterOutputs, api } from "@/utils/api";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Draggable, Droppable, DragDropContext } from "react-beautiful-dnd";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
 interface KanbanCard {
@@ -14,6 +16,8 @@ interface KanbanCard {
 export default function Home() {
   const { data } = api.tasks.getAll.useQuery();
 
+  const { mutate } = api.tasks.update.useMutation();
+
   return (
     <>
       <Head>
@@ -24,9 +28,9 @@ export default function Home() {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gray-200">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-white">
         <AuthShowcase />
-        <Button>+ New Task</Button>
+        {/* <Button>+ New Task</Button> */}
         <Kanban tasks={data ?? []} />
       </main>
     </>
@@ -34,58 +38,76 @@ export default function Home() {
 }
 
 const statusOptions = [
-  { type: TaskStatus.BACKLOG, color: "bg-card-blue" },
-  { type: TaskStatus.IN_PROGRESS, color: "bg-card-yellow" },
-  { type: TaskStatus.WAITING_FOR_REVIEW, color: "bg-card-blue-2" },
-  { type: TaskStatus.DONE, color: "bg-card-green" },
-  { type: TaskStatus.STUCK, color: "bg-card-red" },
+  { type: TaskStatus.BACKLOG, color: "bg-kanban-blue" },
+  { type: TaskStatus.IN_PROGRESS, color: "bg-kanban-yellow" },
+  { type: TaskStatus.WAITING_FOR_REVIEW, color: "bg-kanban-blue2" },
+  { type: TaskStatus.DONE, color: "bg-kanban-green" },
+  { type: TaskStatus.STUCK, color: "bg-kanban-red" },
 ];
 
 function TaskCard(props: Task) {
   return (
-    <div className="mt-2 overflow-hidden rounded-lg border bg-white p-3 hover:shadow-md">
-      <div className="flex justify-between p-2 font-bold capitalize text-black">
+    <Card className="mt-2 max-h-28 min-h-28 rounded-lg p-3 text-sm">
+      <div className="flex justify-between font-bold capitalize text-black">
         {props.name}
       </div>
-      <div className=" flex">{props.priority}</div>
-    </div>
+      <div className="mt-2 flex capitalize">
+        {props.priority?.toLocaleLowerCase()}
+      </div>
+    </Card>
   );
 }
 
 function KanbarCard({ name, color, tasks = [] }: KanbanCard) {
   return (
     <div
-      className={`bg-card-grey hover:bg-card-grey-2 w-64 overflow-hidden rounded-lg hover:shadow-md`}
+      className={`bg-kanban-grey hover:bg-kanban-grey2 w-64 overflow-hidden rounded-lg hover:shadow-md`}
     >
-      <div className={`${color} z-10 p-2 font-bold capitalize text-white`}>
-        {name.split("_").join(" ")} / {tasks?.length ?? 0}
+      <div
+        className={`${color} z-10 rounded-t-xl p-2 font-bold capitalize text-white`}
+      >
+        {name.split("_").join(" ").toLocaleLowerCase()} / {tasks?.length ?? 0}
       </div>
-      <div className="min-h-60 px-3 pb-4 pt-1">
-        {tasks?.map((task) => {
-          return <TaskCard key={task.id} {...task} />;
-        })}
-      </div>
+
+      <Droppable droppableId={`${name}`}>
+        {(provided): JSX.Element => (
+          <div
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            className="min-h-60 overflow-auto px-3 pb-4 pt-1"
+          >
+            {tasks?.map((task) => {
+              return <TaskCard key={task.id} {...task} />;
+            })}
+          </div>
+        )}
+      </Droppable>
     </div>
   );
 }
 
 function Kanban({ tasks }: { tasks: Task[] }) {
+  const onDragEnd = () => {
+    console.log("drag end");
+  };
   return (
-    <div className="flex gap-2">
-      {statusOptions.map(({ type, color }) => {
-        const groupedTasks: Task[] = tasks?.filter(
-          (task: Task) => task.status === type,
-        );
-        return (
-          <KanbarCard
-            key={type}
-            name={type}
-            color={color}
-            tasks={groupedTasks}
-          />
-        );
-      })}
-    </div>
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="flex gap-2">
+        {statusOptions.map(({ type, color }) => {
+          const groupedTasks: Task[] = tasks?.filter(
+            (task: Task) => task.status === type,
+          );
+          return (
+            <KanbarCard
+              key={type}
+              name={type}
+              color={color}
+              tasks={groupedTasks}
+            />
+          );
+        })}
+      </div>
+    </DragDropContext>
   );
 }
 

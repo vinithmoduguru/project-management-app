@@ -18,6 +18,9 @@ const config = {
       },
     },
     extend: {
+      textColor: {
+        black: "#323338",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -51,6 +54,16 @@ const config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        // Kanban colors
+        kanban: {
+          blue: "rgb(43, 118, 229)",
+          blue2: "rgb(161, 227, 246)",
+          green: "rgb(0, 200, 117)",
+          yellow: "rgb(253, 171, 61)",
+          red: "rgb(226, 68, 92)",
+          grey: "#f6f7fb",
+          grey2: "#dcdfec",
         },
       },
       borderRadius: {
