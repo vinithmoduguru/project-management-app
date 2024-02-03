@@ -4,9 +4,16 @@ import { TaskStatus } from "@prisma/client";
 import { RouterOutputs, api } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Draggable, Droppable, DragDropContext } from "react-beautiful-dnd";
+import {
+  Draggable,
+  Droppable,
+  DragDropContext,
+  DropResult,
+} from "@hello-pangea/dnd";
+import { useState } from "react";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
+type TaskWithIndex = Task & { index: number };
 interface KanbanCard {
   name: string;
   color: string;
@@ -15,8 +22,6 @@ interface KanbanCard {
 
 export default function Home() {
   const { data } = api.tasks.getAll.useQuery();
-
-  const { mutate } = api.tasks.update.useMutation();
 
   return (
     <>
@@ -45,23 +50,37 @@ const statusOptions = [
   { type: TaskStatus.STUCK, color: "bg-kanban-red" },
 ];
 
-function TaskCard(props: Task) {
+function TaskCard(props: TaskWithIndex) {
   return (
-    <Card className="mt-2 max-h-28 min-h-28 rounded-lg p-3 text-sm">
-      <div className="flex justify-between font-bold capitalize text-black">
-        {props.name}
-      </div>
-      <div className="mt-2 flex capitalize">
-        {props.priority?.toLocaleLowerCase()}
-      </div>
-    </Card>
+    <Draggable
+      draggableId={`${props.id}`}
+      index={props.index}
+      key={props.index}
+    >
+      {(provided): JSX.Element => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+        >
+          <Card className="mt-2 max-h-28 min-h-28 rounded-lg p-3 text-sm">
+            <div className="flex justify-between font-bold capitalize text-black">
+              {props.name}
+            </div>
+            <div className="mt-2 flex capitalize">
+              {props.priority?.toLocaleLowerCase()}
+            </div>
+          </Card>
+        </div>
+      )}
+    </Draggable>
   );
 }
 
 function KanbarCard({ name, color, tasks = [] }: KanbanCard) {
   return (
     <div
-      className={`bg-kanban-grey hover:bg-kanban-grey2 w-64 overflow-hidden rounded-lg hover:shadow-md`}
+      className={`w-64 overflow-hidden rounded-lg bg-kanban-grey hover:bg-kanban-grey2 hover:shadow-md`}
     >
       <div
         className={`${color} z-10 rounded-t-xl p-2 font-bold capitalize text-white`}
@@ -72,13 +91,14 @@ function KanbarCard({ name, color, tasks = [] }: KanbanCard) {
       <Droppable droppableId={`${name}`}>
         {(provided): JSX.Element => (
           <div
-            {...provided.droppableProps}
             ref={provided.innerRef}
+            {...provided.droppableProps}
             className="min-h-60 overflow-auto px-3 pb-4 pt-1"
           >
-            {tasks?.map((task) => {
-              return <TaskCard key={task.id} {...task} />;
+            {tasks?.map((task, index) => {
+              return <TaskCard key={task.id} index={index} {...task} />;
             })}
+            {provided.placeholder}
           </div>
         )}
       </Droppable>
@@ -87,8 +107,15 @@ function KanbarCard({ name, color, tasks = [] }: KanbanCard) {
 }
 
 function Kanban({ tasks }: { tasks: Task[] }) {
-  const onDragEnd = () => {
-    console.log("drag end");
+  const { mutate } = api.tasks.update.useMutation();
+
+  const onDragEnd = (result: DropResult) => {
+    const { source, destination } = result;
+    if (!destination) return;
+    mutate({
+      id: source.index,
+      status: destination.droppableId as TaskStatus,
+    });
   };
   return (
     <DragDropContext onDragEnd={onDragEnd}>
