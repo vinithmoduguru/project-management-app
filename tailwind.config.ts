@@ -84,9 +84,25 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      gridTemplateAreas: {
+        layout: [
+          "header header header",
+          "nav    main   main",
+          "nav    main   main",
+        ],
+      },
+      gridTemplateColumns: {
+        layout: "14rem 1fr 2rem",
+      },
+      gridTemplateRows: {
+        layout: "5rem 1fr auto",
+      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@savvywombat/tailwindcss-grid-areas"),
+  ],
 } satisfies Config;
 
 export default config;

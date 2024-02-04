@@ -3,6 +3,8 @@ import Head from "next/head";
 import { TaskStatus } from "@prisma/client";
 import { RouterOutputs, api } from "@/utils/api";
 import { Card } from "@/components/ui/card";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import {
   Draggable,
   Droppable,
@@ -11,6 +13,13 @@ import {
 } from "@hello-pangea/dnd";
 import { useEffect, useState } from "react";
 import { Figtree } from "@next/font/google";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { z } from "zod";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
 type TaskWithIndex = Task & { index: number };
@@ -26,8 +35,13 @@ interface KanbanCard {
   tasks: Task[];
 }
 
+interface TaskForm {
+  task?: Task;
+}
+
 export default function Home() {
   const { data } = api.tasks.getAll.useQuery();
+  const [showTaskModal, setShowTaskModal] = useState(false);
 
   return (
     <>
@@ -40,11 +54,24 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main
-        className={`flex min-h-screen flex-col items-center justify-center bg-white ${figTree.className}`}
+        className={`grid-areas-layout grid-cols-layout grid-rows-layout grid h-full bg-white ${figTree.className}`}
       >
-        <AuthShowcase />
-        {/* <Button>+ New Task</Button> */}
-        <Kanban tasks={data ?? []} />
+        <header className="grid-in-header px-3 py-2">
+          <div className="flex items-center justify-between">
+            <AuthShowcase />
+            <Popover>
+              <PopoverTrigger>
+                <Button>+ New Task</Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <TaskForm />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </header>
+        <div className="grid-in-main">
+          <Kanban tasks={data ?? []} />
+        </div>
       </main>
     </>
   );
@@ -58,6 +85,24 @@ const statusOptions = [
   { type: TaskStatus.STUCK, color: "bg-kanban-red" },
 ];
 
+function TaskForm(props: TaskForm) {
+  const formSchema = z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    status: z.enum([
+      "BACKLOG",
+      "IN_PROGRESS",
+      "WAITING_FOR_REVIEW",
+      "DONE",
+      "STUCK",
+    ]),
+    priority: z.enum(["HIGH", "MEDIUM", "LOW"]),
+    type: z.string().optional(),
+    assignee: z.string().optional(),
+  });
+  return <></>;
+}
+
 function TaskCard(props: TaskWithIndex) {
   return (
     <Draggable
@@ -65,30 +110,26 @@ function TaskCard(props: TaskWithIndex) {
       index={props.index}
       key={props.index}
     >
-      {(provided, snapshot) => {
-        {
-          console.log(snapshot.isDragging, snapshot.draggingOver);
-        }
-        return (
-          <Card
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            style={{
-              ...provided.draggableProps.style,
-              transform: `${provided.draggableProps.style?.transform ?? ""} ${snapshot.isDragging ? "rotate(3deg)" : ""}`,
-            }}
-            className={`mt-2 max-h-28 min-h-28 rounded-lg p-3 text-sm`}
-          >
-            <div className="flex justify-between font-semibold capitalize text-black">
-              {props.name}
-            </div>
-            <div className="mt-2 flex capitalize">
-              {props.priority?.toLocaleLowerCase()}
-            </div>
-          </Card>
-        );
-      }}
+      {(provided, snapshot) => (
+        <Card
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          style={{
+            ...provided.draggableProps.style,
+            transform: `${provided.draggableProps.style?.transform ?? ""} ${snapshot.isDragging ? "rotate(3deg)" : ""}`,
+          }}
+          className={`mt-2 max-h-28 min-h-28 rounded-lg p-3 text-sm`}
+        >
+          <div className="flex justify-between font-semibold capitalize text-black">
+            {props.name}
+            {/* <FontAwesomeIcon icon="fa-solid fa-house" /> */}
+          </div>
+          <div className="mt-2 flex capitalize">
+            {props.priority?.toLocaleLowerCase()}
+          </div>
+        </Card>
+      )}
     </Draggable>
   );
 }
@@ -96,7 +137,7 @@ function TaskCard(props: TaskWithIndex) {
 function KanbarCard({ name, color, tasks = [] }: KanbanCard) {
   return (
     <div
-      className={`max-h-screen w-64 rounded-lg bg-kanban-grey hover:bg-kanban-grey2 hover:shadow-md`}
+      className={`max-h-screen w-64 overflow-y-hidden rounded-lg bg-kanban-grey hover:bg-kanban-grey2 hover:shadow-md`}
     >
       <div
         className={`${color} z-10 rounded-t-xl p-2 font-bold capitalize text-white`}
@@ -169,16 +210,15 @@ function AuthShowcase() {
   const { data: sessionData } = useSession();
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <p className="text-center text-2xl text-white">
-        {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-      </p>
-      <button
-        className="rounded-full bg-black/10 px-10 py-3 font-semibold text-slate-200 no-underline transition hover:bg-black/20"
+    <div>
+      <Button
         onClick={sessionData ? () => void signOut() : () => void signIn()}
       >
         {sessionData ? "Sign out" : "Sign in"}
-      </button>
+      </Button>
+      <p className=" text-center text-sm text-black">
+        {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
+      </p>
     </div>
   );
 }
