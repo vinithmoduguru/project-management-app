@@ -21,11 +21,42 @@ export const taskRouter = createTRPCRouter({
     return ctx.db.task.findMany();
   }),
   update: publicProcedure
-    .input(z.object({ id: z.number(), status: z.enum(TaskStatus) }))
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        priority: z.enum(["HIGH", "MEDIUM", "LOW", "CRITICAL"]).optional(),
+        status: z.enum(TaskStatus).optional(),
+      }),
+    )
     .mutation(({ input }) => {
       return prisma.task.update({
         where: { id: input.id },
-        data: { status: input.status },
+        data: { ...input },
+      });
+    }),
+  create: protectedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        status: z.enum(TaskStatus),
+        projectId: z.number(),
+        priority: z.enum(["HIGH", "MEDIUM", "LOW", "CRITICAL"]),
+        createdById: z.string(),
+      }),
+    )
+    .mutation(({ input }) => {
+      return prisma.task.create({
+        data: {
+          name: input.name,
+          description: input.description,
+          status: input.status,
+          projectId: input.projectId,
+          priority: input.priority,
+          createdById: input.createdById,
+        },
       });
     }),
 });

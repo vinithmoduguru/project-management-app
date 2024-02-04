@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
-import { TaskStatus } from "@prisma/client";
+import { TaskStatus, Priority } from "@prisma/client";
 import { RouterOutputs, api } from "@/utils/api";
 import { Card } from "@/components/ui/card";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Pencil1Icon } from "@radix-ui/react-icons";
 
 import {
   Draggable,
@@ -20,8 +23,35 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormField,
+  FormLabel,
+  FormItem,
+  FormMessage,
+  FormControl,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Close } from "@radix-ui/react-popover";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { AccordionContent } from "@radix-ui/react-accordion";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
+type Project = RouterOutputs["projects"]["getAll"][number];
 type TaskWithIndex = Task & { index: number };
 
 const figTree = Figtree({
@@ -41,7 +71,14 @@ interface TaskForm {
 
 export default function Home() {
   const { data } = api.tasks.getAll.useQuery();
-  const [showTaskModal, setShowTaskModal] = useState(false);
+  const projectData = api.projects.getAll.useQuery();
+  const [projects, setProjects] = useState<Project[] | undefined>();
+
+  useEffect(() => {
+    if (projectData.data) {
+      setProjects(projectData.data);
+    }
+  }, [projectData.data]);
 
   return (
     <>
@@ -60,7 +97,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <AuthShowcase />
             <Popover>
-              <PopoverTrigger>
+              <PopoverTrigger asChild>
                 <Button>+ New Task</Button>
               </PopoverTrigger>
               <PopoverContent>
@@ -69,7 +106,28 @@ export default function Home() {
             </Popover>
           </div>
         </header>
-        <div className="grid-in-main">
+        <div className="grid-in-nav px-2">
+          <Accordion type="single" collapsible>
+            <AccordionItem
+              value="projects"
+              dir="rtl"
+              className="justify-end gap-x-3"
+            >
+              <AccordionTrigger>Projects</AccordionTrigger>
+              <AccordionContent>
+                {projects?.map((project) => (
+                  <div
+                    key={project.id}
+                    className="ml-6 mt-2 cursor-pointer text-left"
+                  >
+                    {project.name}
+                  </div>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+        <div className="grid-in-main mr-3">
           <Kanban tasks={data ?? []} />
         </div>
       </main>
@@ -86,6 +144,10 @@ const statusOptions = [
 ];
 
 function TaskForm(props: TaskForm) {
+  const create = api.tasks.create.useMutation();
+  const update = api.tasks.update.useMutation();
+  const { data: sessionData } = useSession();
+
   const formSchema = z.object({
     name: z.string(),
     description: z.string().optional(),
@@ -96,14 +158,131 @@ function TaskForm(props: TaskForm) {
       "DONE",
       "STUCK",
     ]),
-    priority: z.enum(["HIGH", "MEDIUM", "LOW"]),
+    priority: z.enum(["HIGH", "MEDIUM", "LOW", "CRITICAL"]),
     type: z.string().optional(),
     assignee: z.string().optional(),
   });
-  return <></>;
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: props.task?.name ?? "",
+      description: props.task?.description ?? "",
+      status: props.task?.status ?? "BACKLOG",
+      priority: props.task?.priority ?? "MEDIUM",
+      type: props.task?.type ?? "",
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    if (props.task) {
+      // Update the task
+      update.mutate({
+        id: props.task.id,
+        name: values.name,
+        description: values.description,
+        status: values.status,
+        priority: values.priority,
+      });
+    } else {
+      create.mutate({
+        name: values.name,
+        description: values.description,
+        status: values.status,
+        priority: values.priority,
+        createdById: sessionData?.user?.id ?? "",
+        projectId: 1,
+      });
+    }
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter name of the task" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Enter Description" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Status for the Task" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.type} value={option.type}>
+                      {option.type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="priority"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Priority</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Priority for the Task" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.keys(Priority).map((priority) => (
+                    <SelectItem key={priority} value={priority}>
+                      {priority}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Close>
+          <Button type="submit">Submit</Button>
+        </Close>
+      </form>
+    </Form>
+  );
 }
 
 function TaskCard(props: TaskWithIndex) {
+  const [showEditModal, setShowEditModal] = useState(false);
   return (
     <Draggable
       draggableId={`${props.id}`}
@@ -119,11 +298,18 @@ function TaskCard(props: TaskWithIndex) {
             ...provided.draggableProps.style,
             transform: `${provided.draggableProps.style?.transform ?? ""} ${snapshot.isDragging ? "rotate(3deg)" : ""}`,
           }}
-          className={`mt-2 max-h-28 min-h-28 rounded-lg p-3 text-sm`}
+          className={`mt-2 max-h-28 min-h-28 rounded-lg p-3 text-sm hover:shadow-md`}
         >
-          <div className="flex justify-between font-semibold capitalize text-black">
+          <div className="flex items-center justify-between font-semibold capitalize text-black">
             {props.name}
-            {/* <FontAwesomeIcon icon="fa-solid fa-house" /> */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Pencil1Icon />
+              </PopoverTrigger>
+              <PopoverContent>
+                <TaskForm task={props} />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="mt-2 flex capitalize">
             {props.priority?.toLocaleLowerCase()}
@@ -208,7 +394,6 @@ function Kanban({ tasks }: { tasks: Task[] }) {
 
 function AuthShowcase() {
   const { data: sessionData } = useSession();
-
   return (
     <div>
       <Button
