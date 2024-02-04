@@ -17,9 +17,18 @@ const TaskStatus = [
 ] as const;
 
 export const taskRouter = createTRPCRouter({
-  getAll: publicProcedure.query(({ ctx }) => {
-    return ctx.db.task.findMany();
-  }),
+  getAll: publicProcedure
+    .input(
+      z.object({
+        projectId: z.number(),
+      }),
+    )
+    .query(({ ctx, input: { projectId } }) => {
+      return ctx.db.task.findMany({
+        where: { projectId },
+        orderBy: { createdAt: "desc" },
+      });
+    }),
   update: publicProcedure
     .input(
       z.object({
@@ -28,6 +37,8 @@ export const taskRouter = createTRPCRouter({
         description: z.string().optional(),
         priority: z.enum(["HIGH", "MEDIUM", "LOW", "CRITICAL"]).optional(),
         status: z.enum(TaskStatus).optional(),
+        projectId: z.number().optional(),
+        assigneeId: z.string().optional(),
       }),
     )
     .mutation(({ input }) => {
@@ -43,6 +54,7 @@ export const taskRouter = createTRPCRouter({
         description: z.string().optional(),
         status: z.enum(TaskStatus),
         projectId: z.number(),
+        assigneeId: z.string().optional(),
         priority: z.enum(["HIGH", "MEDIUM", "LOW", "CRITICAL"]),
         createdById: z.string(),
       }),
@@ -54,6 +66,7 @@ export const taskRouter = createTRPCRouter({
           description: input.description,
           status: input.status,
           projectId: input.projectId,
+          assigneeId: input.assigneeId,
           priority: input.priority,
           createdById: input.createdById,
         },
