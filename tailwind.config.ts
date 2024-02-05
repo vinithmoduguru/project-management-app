@@ -92,10 +92,10 @@ const config = {
         ],
       },
       gridTemplateColumns: {
-        layout: "14rem 1fr 2rem",
+        layout: "14rem 1fr",
       },
       gridTemplateRows: {
-        layout: "5rem 1fr auto",
+        layout: "5rem calc(100vh - 5rem)",
       },
     },
   },

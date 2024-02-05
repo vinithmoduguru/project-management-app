@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import TaskForm from "@/forms/task";
 import ProjectForm from "@/forms/project";
 import { api } from "@/utils/api";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 const figTree = Figtree({
   subsets: ["latin"],
@@ -23,6 +25,9 @@ const figTree = Figtree({
 });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const { query } = useRouter(),
+    projectId = parseInt(query?.projectId as string);
+
   const projectData = api.projects.getAll.useQuery();
   return (
     <div
@@ -49,14 +54,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </AccordionTrigger>
             <AccordionContent>
               {projectData?.data?.map((project) => (
-                <div
+                <Link
+                  href={`/project/${project.id}`}
                   key={`project_${project.id}`}
-                  className={`cursor-pointer py-3 pl-6 pr-3 text-sm hover:bg-kanban-grey2`}
-                  //${selectedProject?.id === project.id ? "bg-gray-200 font-semibold" : ""}
-                  //   onClick={() => setSelectedProject(project)}
+                  className={`block cursor-pointer ${projectId === project.id ? "bg-gray-200 font-semibold" : ""} py-3 pl-6 pr-3 text-sm hover:bg-kanban-grey2`}
                 >
                   {project.name}
-                </div>
+                </Link>
               ))}
               <Popover>
                 <PopoverTrigger

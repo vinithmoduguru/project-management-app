@@ -46,8 +46,8 @@ export const taskRouter = createTRPCRouter({
         assigneeId: z.string().optional(),
       }),
     )
-    .mutation(({ input }) => {
-      return prisma.task.update({
+    .mutation(({ ctx, input }) => {
+      return ctx.db.task.update({
         where: { id: input.id },
         data: { ...input },
       });
@@ -64,8 +64,8 @@ export const taskRouter = createTRPCRouter({
         createdById: z.string(),
       }),
     )
-    .mutation(({ input }) => {
-      return prisma.task.create({
+    .mutation(({ ctx, input }) => {
+      return ctx.db.task.create({
         data: {
           name: input.name,
           description: input.description,

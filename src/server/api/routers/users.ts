@@ -5,12 +5,9 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
 
 export const userRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async () => {
-    return await prisma.user.findMany();
+  getAll: publicProcedure.query(({ ctx }) => {
+    return ctx.db.user.findMany();
   }),
 });
