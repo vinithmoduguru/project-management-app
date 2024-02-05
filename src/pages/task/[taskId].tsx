@@ -24,8 +24,8 @@ export default function TaskPage() {
     ) : (
       <>
         <h1 className="mb-6 text-xl font-bold">{data?.name}</h1>
-        <Label>Description</Label>
-        <div className="mt-3">{data?.description}</div>
+        <Label className="font-semibold">Description</Label>
+        <div className="mt-1">{data?.description}</div>
       </>
     )
   );

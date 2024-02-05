@@ -13,13 +13,14 @@ import {
   DragDropContext,
   DropResult,
 } from "@hello-pangea/dnd";
-import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import TaskForm from "@/forms/task";
+import { useToast } from "@/components/ui/use-toast";
+import { Toast } from "@/components/ui/toast";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
 type Project = RouterOutputs["projects"]["getAll"][number];
@@ -133,6 +134,8 @@ function TaskCard(props: TaskWithIndex) {
   const assigneeImg = userData?.data?.find(
     (user) => user.id === props.assigneeId,
   )?.image;
+  const { toast } = useToast();
+
   return (
     <Draggable draggableId={`${props.id}`} index={props.index}>
       {(provided, snapshot) => (
@@ -144,7 +147,7 @@ function TaskCard(props: TaskWithIndex) {
             ...provided.draggableProps.style,
             transform: `${provided.draggableProps.style?.transform ?? ""} ${snapshot.isDragging ? "rotate(3deg)" : ""}`,
           }}
-          onClick={() => router.push(`${router.basePath}/task/${props.id}`)}
+          // onClick={() => router.push(`${router.basePath}/task/${props.id}`)}
           className={`group mt-2 min-h-28 rounded-lg p-3 text-sm hover:shadow-md`}
         >
           <div className="flex items-center justify-between font-semibold capitalize text-black">
@@ -164,7 +167,17 @@ function TaskCard(props: TaskWithIndex) {
                   />
                 </PopoverContent>
               </Popover>
-              <Share1Icon className="flex-shrink-0 opacity-0 group-hover:opacity-100" />
+              <Share1Icon
+                className="flex-shrink-0 opacity-0 group-hover:opacity-100"
+                onClick={() => {
+                  void navigator.clipboard.writeText(
+                    `${window.location.origin}/task/${props.id}`,
+                  );
+                  toast({
+                    title: "Copied to clipboard",
+                  });
+                }}
+              />
             </div>
           </div>
           <div className="mt-2 flex capitalize">

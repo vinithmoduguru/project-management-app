@@ -18,6 +18,18 @@ import ProjectForm from "@/forms/project";
 import { api } from "@/utils/api";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { Toast } from "@/components/ui/toast";
+import { Toaster } from "@/components/ui/toaster";
+import { Avatar } from "@/components/ui/avatar";
+import { AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 const figTree = Figtree({
   subsets: ["latin"],
@@ -33,21 +45,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div
       className={`grid-areas-layout grid-cols-layout grid-rows-layout grid h-full bg-white ${figTree.className}`}
     >
-      <header className="grid-in-header px-3 py-2">
-        <div className="flex items-center justify-between">
+      <header className="grid-in-header bg-backgroundGreen mb-2 px-3 py-2">
+        <div className="flex items-center gap-4">
+          <div className="text-xl font-bold">Project Management</div>
+          <div className="flex-grow">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button>+ New Task</Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <TaskForm />
+              </PopoverContent>
+            </Popover>
+          </div>
           <AuthShowcase />
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button>+ New Task</Button>
-            </PopoverTrigger>
-            <PopoverContent>
-              <TaskForm />
-            </PopoverContent>
-          </Popover>
         </div>
       </header>
-      <div className="grid-in-nav px-3">
-        <Accordion type="single" collapsible>
+      <div className="grid-in-nav mr-4 border-r px-3">
+        <Accordion type="single" collapsible defaultValue="projects">
           <AccordionItem value="projects" className="gap-x-3">
             <AccordionTrigger className="flex-row-reverse justify-end gap-3">
               Projects
@@ -77,7 +92,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </AccordionItem>
         </Accordion>
       </div>
-      <div className="grid-in-main mr-3">{children}</div>
+      <main className="grid-in-main mr-3">
+        {children}
+        <Toaster />
+      </main>
     </div>
   );
 }
@@ -86,14 +104,35 @@ function AuthShowcase() {
   const { data: sessionData } = useSession();
   return (
     <div>
-      <Button
-        onClick={sessionData ? () => void signOut() : () => void signIn()}
-      >
-        {sessionData ? "Sign out" : "Sign in"}
-      </Button>
-      <p className=" text-center text-sm text-black">
-        {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-      </p>
+      {sessionData ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Avatar className="cursor-pointer">
+              {sessionData?.user?.image && (
+                <AvatarImage src={sessionData?.user?.image} />
+              )}
+              <AvatarFallback>JD</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {sessionData && (
+              <>
+                <DropdownMenuLabel>
+                  {`Logged in as ${sessionData.user?.name}`}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuItem
+              onClick={sessionData ? () => void signOut() : () => void signIn()}
+            >
+              {sessionData ? "Sign Out" : "Sign In"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <Button onClick={() => void signIn()}>Sign In</Button>
+      )}
     </div>
   );
 }
