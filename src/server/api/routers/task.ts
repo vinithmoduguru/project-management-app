@@ -29,6 +29,11 @@ export const taskRouter = createTRPCRouter({
         orderBy: { createdAt: "desc" },
       });
     }),
+  getById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ ctx, input: { id } }) => {
+      return ctx.db.task.findFirst({ where: { id } });
+    }),
   update: publicProcedure
     .input(
       z.object({
