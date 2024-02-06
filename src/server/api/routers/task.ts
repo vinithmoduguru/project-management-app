@@ -32,7 +32,7 @@ export const taskRouter = createTRPCRouter({
     .query(({ ctx, input: { id } }) => {
       return ctx.db.task.findFirst({ where: { id } });
     }),
-  update: publicProcedure
+  update: protectedProcedure
     .input(
       z.object({
         id: z.number(),

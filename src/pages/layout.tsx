@@ -44,21 +44,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div
       className={`grid-areas-layout grid-cols-layout grid-rows-layout grid h-full bg-white ${figTree.className}`}
     >
-      <header className="grid-in-header bg-backgroundGreen mb-2 px-3 py-2">
-        <div className="flex items-center gap-4">
-          <div className="text-xl font-bold">Project Management</div>
-          <div className="flex-grow">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button>+ New Task</Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <TaskForm />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <AuthShowcase />
+      <header className="grid-in-header bg-backgroundGreen mb-2 flex items-center gap-4 px-3 py-2">
+        <div className="mr-auto text-xl font-bold">Project Management</div>
+        <div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button>+ New Task</Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <TaskForm />
+            </PopoverContent>
+          </Popover>
         </div>
+        <AuthShowcase />
       </header>
       <div className="grid-in-nav mr-4 border-r px-3">
         <Accordion type="single" collapsible defaultValue="projects">
@@ -91,7 +89,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </AccordionItem>
         </Accordion>
       </div>
-      <main className="grid-in-main mr-3">
+      <main className="grid-in-main mr-3 py-4">
         {children}
         <Toaster />
       </main>

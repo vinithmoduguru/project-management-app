@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 import { api } from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Close } from "@radix-ui/react-popover";
@@ -20,6 +21,12 @@ export default function ProjectForm() {
   const create = api.projects.create.useMutation({
     onSuccess: () => {
       void utils.projects.getAll.invalidate();
+    },
+    onError: (err) => {
+      toast({
+        title: `${err.message}`,
+        variant: "destructive",
+      });
     },
   });
   const formSchema = z.object({

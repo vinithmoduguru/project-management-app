@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import TaskForm from "@/forms/task";
-import { useToast } from "@/components/ui/use-toast";
+import { toast, useToast } from "@/components/ui/use-toast";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
 type Project = RouterOutputs["projects"]["getAll"][number];
@@ -55,6 +55,12 @@ function Kanban({ tasks }: { tasks: Task[] }) {
   const mutate = api.tasks.update.useMutation({
     onSuccess: () => {
       void utils.tasks.getAll.invalidate();
+    },
+    onError: (err) => {
+      toast({
+        title: `${err.message}`,
+        variant: "destructive",
+      });
     },
   });
   const onDragEnd = (result: DropResult) => {
@@ -166,7 +172,7 @@ function TaskCard(props: TaskWithIndex) {
                 </PopoverContent>
               </Popover>
               <Share1Icon
-                className="flex-shrink-0 opacity-0 group-hover:opacity-100"
+                className="flex-shrink-0 cursor-pointer opacity-0 group-hover:opacity-100"
                 onClick={() => {
                   void navigator.clipboard.writeText(
                     `${window.location.origin}/task/${props.id}`,

@@ -25,6 +25,7 @@ import { Close } from "@radix-ui/react-popover";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/use-toast";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
 interface TaskForm {
@@ -38,10 +39,22 @@ export default function TaskForm(props: TaskForm) {
     onSuccess: () => {
       void utils.tasks.getAll.invalidate();
     },
+    onError: (err) => {
+      toast({
+        title: `${err.message}`,
+        variant: "destructive",
+      });
+    },
   });
   const update = api.tasks.update.useMutation({
     onSuccess: () => {
       void utils.tasks.getAll.invalidate();
+    },
+    onError: (err) => {
+      toast({
+        title: `${err.message}`,
+        variant: "destructive",
+      });
     },
   });
   const { data: sessionData } = useSession();
