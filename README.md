@@ -14,7 +14,7 @@ Check out the live demo of the Project Management App [here](https://project-man
 
 ## Technologies Used
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`, `supabase`.
 
 ## Getting Started
 
