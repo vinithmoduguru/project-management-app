@@ -1,28 +1,39 @@
-# Create T3 App
+# Project Management App
+
+Welcome to the Project Management App! This application is built using the T3 stack and provides features such as a beautiful Kanban Board, Project Assignment, and more.
+
+## Demo
+
+Check out the live demo of the Project Management App [here](https://project-management-app-one.vercel.app/).
+
+## Features
+
+- **Kanban Board:** Visualize your projects using a Kanban-style board, making it easy to track progress.
+- **Project Assignment:** Assign tasks to team members and track their status within the app.
+- **More features:** (You can add any additional features your app provides)
+
+## Technologies Used
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
-## What's next? How do I make an app with this?
+## Getting Started
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+To get a local copy up and running, follow these simple steps:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+1. Clone the repository
+2. Install dependencies
+3. Run the development server
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+```bash
+# Clone the repository
+git clone https://github.com/your-username/your-repo.git
 
-## Learn More
+# Navigate to the project directory
+cd your-repo
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+# Install dependencies
+npm install
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
-
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
-
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+# Run the development server
+npm run dev
+```
