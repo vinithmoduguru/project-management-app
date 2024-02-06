@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/popover";
 import TaskForm from "@/forms/task";
 import { toast, useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
 type Project = RouterOutputs["projects"]["getAll"][number];
@@ -187,7 +188,7 @@ function TaskCard(props: TaskWithIndex) {
           <div className="mt-2 flex capitalize">
             {props.priority?.toLocaleLowerCase()}
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex items-center">
             {assigneeImg && (
               <Image
                 src={assigneeImg}
@@ -196,6 +197,13 @@ function TaskCard(props: TaskWithIndex) {
                 height={28}
                 className="rounded-full"
               />
+            )}
+            {props.taskDueDate && (
+              <div
+                className={`ml-auto ${props.taskDueDate < new Date() ? "text-kanban-red" : ""}`}
+              >
+                {format(new Date(props.taskDueDate), "d MMM")}
+              </div>
             )}
           </div>
         </Card>

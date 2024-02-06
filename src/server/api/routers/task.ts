@@ -42,6 +42,7 @@ export const taskRouter = createTRPCRouter({
         status: z.enum(TaskStatus).optional(),
         projectId: z.number().optional(),
         assigneeId: z.string().optional(),
+        taskDueDate: z.date().optional(),
       }),
     )
     .mutation(({ ctx, input }) => {
@@ -59,6 +60,7 @@ export const taskRouter = createTRPCRouter({
         projectId: z.number(),
         assigneeId: z.string().optional(),
         priority: z.enum(["HIGH", "MEDIUM", "LOW", "CRITICAL"]),
+        taskDueDate: z.date().optional(),
         createdById: z.string(),
       }),
     )
@@ -72,6 +74,7 @@ export const taskRouter = createTRPCRouter({
           assigneeId: input.assigneeId,
           priority: input.priority,
           createdById: input.createdById,
+          taskDueDate: input.taskDueDate,
         },
       });
     }),
