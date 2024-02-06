@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
+import { useRouter } from "next/router";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
 interface TaskForm {
@@ -61,6 +62,7 @@ export default function TaskForm(props: TaskForm) {
 
   const projectData = api.projects.getAll.useQuery();
   const userData = api.users.getAll.useQuery();
+  const router = useRouter();
 
   const statusOptions = [
     { type: TaskStatus.BACKLOG, color: "bg-kanban-blue" },
@@ -94,7 +96,8 @@ export default function TaskForm(props: TaskForm) {
       status: props.task?.status ?? "BACKLOG",
       priority: props.task?.priority ?? "MEDIUM",
       type: props.task?.type ?? "",
-      projectId: props.task?.projectId,
+      projectId:
+        props.task?.projectId ?? parseInt(router?.query?.projectId as string),
       assignee: props.task?.assigneeId ?? "",
     },
   });
