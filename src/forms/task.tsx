@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { RouterOutputs, api } from "@/utils/api";
+import { api } from "@/utils/api";
+import type { RouterOutputs } from "@/utils/api";
 import { TaskStatus, Priority } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -245,9 +246,9 @@ export default function TaskForm(props: TaskForm) {
             </FormItem>
           )}
         />
-        {/* <Close> */}
-        <Button type="submit">Submit</Button>
-        {/* </Close> */}
+        <Close>
+          <Button type="submit">Submit</Button>
+        </Close>
       </form>
     </Form>
   );

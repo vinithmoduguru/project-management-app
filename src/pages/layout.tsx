@@ -18,7 +18,6 @@ import ProjectForm from "@/forms/project";
 import { api } from "@/utils/api";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Toast } from "@/components/ui/toast";
 import { Toaster } from "@/components/ui/toaster";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { TaskStatus } from "@prisma/client";
-import { RouterOutputs, api } from "@/utils/api";
+import { type RouterOutputs, api } from "@/utils/api";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/router";
 import { Pencil1Icon, Share1Icon } from "@radix-ui/react-icons";
@@ -11,7 +11,7 @@ import {
   Draggable,
   Droppable,
   DragDropContext,
-  DropResult,
+  type DropResult,
 } from "@hello-pangea/dnd";
 import {
   Popover,
@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/popover";
 import TaskForm from "@/forms/task";
 import { useToast } from "@/components/ui/use-toast";
-import { Toast } from "@/components/ui/toast";
 
 type Task = RouterOutputs["tasks"]["getAll"][number];
 type Project = RouterOutputs["projects"]["getAll"][number];
@@ -129,7 +128,6 @@ function KanbarCard({ name, color, tasks = [] }: KanbanCard) {
 }
 
 function TaskCard(props: TaskWithIndex) {
-  const router = useRouter();
   const userData = api.users.getAll.useQuery();
   const assigneeImg = userData?.data?.find(
     (user) => user.id === props.assigneeId,

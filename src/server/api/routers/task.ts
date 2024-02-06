@@ -5,9 +5,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
 const TaskStatus = [
   "BACKLOG",
   "IN_PROGRESS",
